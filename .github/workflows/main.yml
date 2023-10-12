@@ -1,24 +1,24 @@
-name: Update MongoDB Collection with All JSON Files
+name: Import JSON Files to MongoDB
 
 on:
   push:
     branches:
-      - master  # Adjust with the name of your branch
-  workflow_dispatch:  # This allows you to manually trigger the action
+      - master  # Adjust if your main branch has a different name
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  update-mongodb:
+  mongo-import:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Process JSON files
-      run: |
-        for jsonfile in *.json; do
-          echo "Processing $jsonfile"
-          mongoimport --uri ${{ secrets.MONGO_URI }} --db bible --collection translations --file $jsonfile --jsonArray
-          echo "$jsonfile has been processed"
-        done
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }} # Ensure this secret is set with your MongoDB URI
+    - name: Mongo import files
+      uses: eamonwoortman/mongo-import-action@0.1
+      with:
+        path: '*.json'  # Import all JSON files in the root directory
+        uri: ${{ secrets.MONGO_URI }}  # Your MongoDB connection string
+        database: 'bible'  # Your database name
+        collection: 'translations'  # Your collection name
+        keep-collection: 'false'  # Keep the existing collection and import new files
+        if-no-files-found: 'warn'  # Warn if no files are found, but do not fail the action
