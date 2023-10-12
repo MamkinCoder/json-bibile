@@ -1,43 +1,26 @@
-name: Rewrite MongoDB Collection
+name: Update MongoDB Collection with KJV
 
 on:
   push:
     branches:
-      - master  # Adjust with the name of the branch on which you want to trigger the action
-  workflow_dispatch:  # This enables manual triggering
+      - master  # Adjust with the name of your branch
+  workflow_dispatch:  # This allows you to manually trigger the action
 
 jobs:
-  prepare:
+  update-mongodb:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - id: set-matrix
-      run: |
-        JSON_FILES=$(ls *.json | jq -R -s -c 'split("\n")[:-1]')
-        echo "::set-output name=matrix::${JSON_FILES}"
-
-  rewrite-mongo-collection:
-    needs: prepare
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        jsonfile: ${{fromJson(needs.prepare.outputs.matrix)}}
-    steps:
-    - name: Checkout code  # Adding the checkout step back
-      uses: actions/checkout@v2
-
     - name: Print selected JSON file
-      run: echo "Selected JSON file - ${{ matrix.jsonfile }}"
+      run: echo "Updating MongoDB with kjv.json"
 
     - name: Mongo Export
       uses: tejasmr/mongoexport@v1
       with:
-        uri: ${{ secrets.MONGO_URI }}
-        export: ${{ matrix.jsonfile }}
-        db: 'bible'
-        collection: 'translations'
-        rewrite: 'true'
+        uri: ${{ secrets.MONGO_URI }} # Ensure this secret is set with your MongoDB URI
+        export: 'kjv.json' # Specifying the kjv.json file
+        db: 'bible' # Replace with your actual database name
+        collection: 'translations' # Replace with your actual collection name
+        rewrite: 'true' # This option is to rewrite the data
