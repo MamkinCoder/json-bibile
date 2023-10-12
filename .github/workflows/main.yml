@@ -1,4 +1,4 @@
-name: Update MongoDB Collection with KJV
+name: Update MongoDB Collection with All JSON Files
 
 on:
   push:
@@ -13,14 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Print selected JSON file
-      run: echo "Updating MongoDB with kjv.json"
-
-    - name: Mongo Export
-      uses: tejasmr/mongoexport@v1
-      with:
-        uri: ${{ secrets.MONGO_URI }} # Ensure this secret is set with your MongoDB URI
-        export: 'kjv.json' # Specifying the kjv.json file
-        db: 'bible' # Replace with your actual database name
-        collection: 'translations' # Replace with your actual collection name
-        rewrite: 'true' # This option is to rewrite the data
+    - name: Process JSON files
+      run: |
+        for jsonfile in *.json; do
+          echo "Processing $jsonfile"
+          mongoimport --uri ${{ secrets.MONGO_URI }} --db bible --collection translations --file $jsonfile --jsonArray
+          echo "$jsonfile has been processed"
+        done
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }} # Ensure this secret is set with your MongoDB URI
