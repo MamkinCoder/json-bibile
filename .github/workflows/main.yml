@@ -3,7 +3,7 @@ name: Rewrite MongoDB Collection
 on:
   push:
     branches:
-      - main  # Adjust with the name of the branch on which you want to trigger the action
+      - master  # Adjust with the name of the branch on which you want to trigger the action
   workflow_dispatch:
 
 jobs:
