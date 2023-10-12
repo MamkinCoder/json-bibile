@@ -3,38 +3,38 @@ name: Rewrite MongoDB Collection
 on:
   push:
     branches:
-      - master  # Adjust with the name of the branch on which you want to trigger the action
-  workflow_dispatch:
+      - main  # Adjust with the name of the branch on which you want to trigger the action
+  workflow_dispatch:  # This enables manual triggering
 
 jobs:
-  rewrite-mongo-collection:
+  prepare:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        jsonfile: ${{fromJson(steps.set-matrix.outputs.jsonfiles)}}
-
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up matrix for JSON files
-      id: set-matrix
-      run: echo "::set-output name=jsonfiles::$(ls *.json | jq -R -s -c 'split("\n")[:-1]')"
+    - id: set-matrix
+      run: |
+        JSON_FILES=$(ls *.json | jq -R -s -c 'split("\n")[:-1]')
+        echo "::set-output name=matrix::${JSON_FILES}"
 
+  rewrite-mongo-collection:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jsonfile: ${{fromJson(needs.prepare.outputs.matrix)}}
+    steps:
     - name: Print selected JSON file
       run: echo "Selected JSON file - ${{ matrix.jsonfile }}"
 
     - name: Mongo Export
       uses: tejasmr/mongoexport@v1
       with:
-        # The URI of the server without username and password
-        uri: ${{ secrets.MONGO_URI }}  # Reference to the MongoDB URI stored in GitHub secrets
-        # Json file path
-        export: ${{ matrix.jsonfile }}  # Dynamic path from matrix
-        # Name of the db
-        db: 'bible'  # Replace with the name of your database
-        # Name of the collection
-        collection: 'translations'  # Replace with the name of your collection
-        # Should rewrite data
-        rewrite: 'true'  # Set to true if you want to rewrite the data
+        uri: ${{ secrets.MONGO_URI }}
+        export: ${{ matrix.jsonfile }}
+        db: 'bible'
+        collection: 'translations'
+        rewrite: 'true'
