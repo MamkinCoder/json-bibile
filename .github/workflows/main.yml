@@ -27,6 +27,9 @@ jobs:
       matrix:
         jsonfile: ${{fromJson(needs.prepare.outputs.matrix)}}
     steps:
+    - name: Checkout code  # Adding the checkout step back
+      uses: actions/checkout@v2
+
     - name: Print selected JSON file
       run: echo "Selected JSON file - ${{ matrix.jsonfile }}"
 
