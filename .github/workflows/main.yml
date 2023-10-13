@@ -24,18 +24,26 @@ jobs:
       run: |
         echo "Connecting to MongoDB..."
         mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
-          db = connect('${{ secrets.MONGO_URI }}');
-          db.translations.drop();
-          print('Collection translations dropped.');
+          use bible;
+          try {
+            db.translations.drop();
+            print('Collection translations dropped.');
+          } catch (e) {
+            print('Error: ' + e.message);
+          }
         "
         for file in *.json
         do
           echo "Uploading $file..."
           mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
-            db = connect('${{ secrets.MONGO_URI }}');
-            var data = $(< $file);
-            db.translations.insertMany(data);
-            print('$file uploaded.');
+            use bible;
+            try {
+              var data = $(< $file);
+              db.translations.insertMany(data);
+              print('$file uploaded.');
+            } catch (e) {
+              print('Error: ' + e.message);
+            }
           "
         done
       shell: bash
