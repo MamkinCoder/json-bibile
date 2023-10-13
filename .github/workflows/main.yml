@@ -3,7 +3,7 @@ name: Upload JSON to MongoDB
 on:
   push:
     branches:
-      - master
+      - master # adjust with your branch name
   workflow_dispatch:
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
           echo "Uploading $file..."
           mongosh ${{ secrets.MONGO_URI }} --quiet --eval "
             use bible;
-            var data = $(cat $file);
+            var data = $(< $file);
             db.translations.insertMany(data);
             print('$file uploaded.');
           "
