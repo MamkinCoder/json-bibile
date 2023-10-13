@@ -14,19 +14,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Cache MongoSH package
-      id: cache-mongosh-package
+    - name: Cache MongoSH
+      id: cache-mongosh
       uses: actions/cache@v2
       with:
-        path: ~/mongo-tools
-        key: ${{ runner.os }}-mongosh-package-1
+        path: ~/mongosh
+        key: ${{ runner.os }}-mongosh-1
 
     - name: Setup MongoSH
+      if: steps.cache-mongosh.outputs.cache-hit != 'true'
       uses: boly38/action-mongo-tools@v1.0.1
       with:
         mongo-shell: 'true'
         mongo-tools: 'false'
-        cache-folder: ~/mongo-tools  # Add this to specify the cache folder
+
+    - name: Link cached mongosh
+      if: steps.cache-mongosh.outputs.cache-hit == 'true'
+      run: |
+        sudo ln -s ~/mongosh/* /usr/bin/
 
     - name: Clear collection and upload files
       run: |
