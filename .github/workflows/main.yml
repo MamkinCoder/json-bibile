@@ -3,7 +3,9 @@ name: Upload JSON to MongoDB
 on:
   push:
     branches:
-      - master 
+      - master
+    paths:
+      - '**.json'  # This will only trigger the workflow when any .json file changes
   workflow_dispatch:
 
 jobs:
