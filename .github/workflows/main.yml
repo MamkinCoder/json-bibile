@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /usr/bin/mongosh
-        key: ${{ runner.os }}-mongosh-${{ hashFiles('**/lock-files') }}
+        key: ${{ runner.os }}-mongosh-1
 
     - name: Setup MongoSH
       if: steps.cache-mongosh.outputs.cache-hit != 'true'
@@ -43,8 +43,13 @@ jobs:
             use bible;
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('$file', 'utf8'));
-            db.translations.insertMany(data);
-            print('$file uploaded.');
+            print('Number of records:', data.length);
+            try {
+              db.translations.insertMany(data);
+              print('$file uploaded.');
+            } catch (e) {
+              print('Error inserting data:', e.message);
+            }
           "
         done
       shell: bash
