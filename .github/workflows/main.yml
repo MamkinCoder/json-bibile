@@ -28,10 +28,11 @@ jobs:
         mongo-shell: 'true'
         mongo-tools: 'false'
 
-    - name: Link cached mongosh
-      if: steps.cache-mongosh.outputs.cache-hit == 'true'
+    - name: Copy mongosh to cache directory
+      if: steps.cache-mongosh.outputs.cache-hit != 'true'
       run: |
-        sudo ln -s ~/mongosh/* /usr/bin/
+        mkdir -p ~/mongosh
+        cp /usr/bin/mongosh ~/mongosh/
 
     - name: Clear collection and upload files
       run: |
