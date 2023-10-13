@@ -19,31 +19,29 @@ jobs:
       with:
         mongo-shell: 'true'
         mongo-tools: 'false'
+        
+    - name: Find mongosh path
+      run: |
+        which mongosh
 
     - name: Clear collection and upload files
       run: |
         echo "Connecting to MongoDB..."
         mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
           use bible;
-          try {
-            db.translations.drop();
-            print('Collection translations dropped.');
-          } catch (e) {
-            print('Error: ' + e.message);
-          }
+          db.translations.drop();
+          print('Collection translations dropped.');
         "
         for file in *.json
         do
           echo "Uploading $file..."
           mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
             use bible;
-            try {
-              var data = $(< $file);
-              db.translations.insertMany(data);
-              print('$file uploaded.');
-            } catch (e) {
-              print('Error: ' + e.message);
-            }
+            const fs = require('fs');
+            const EJSON = require('mongodb-extended-json');
+            const data = EJSON.parse(fs.readFileSync('$file', 'utf8'));
+            db.translations.insertMany(data);
+            print('$file uploaded.');
           "
         done
       shell: bash
