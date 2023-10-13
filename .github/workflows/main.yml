@@ -1,24 +1,41 @@
-name: Import JSON Files to MongoDB
+name: Upload JSON to MongoDB
 
 on:
   push:
     branches:
-      - master  # Adjust if your main branch has a different name
-  workflow_dispatch:  # Allows manual triggering
+      - master
+  workflow_dispatch:
 
 jobs:
-  mongo-import:
+  upload:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Mongo import files
-      uses: eamonwoortman/mongo-import-action@0.1
+    - name: Setup MongoSH
+      uses: boly38/action-mongo-tools@v1.0.1
       with:
-        path: '*.json'  # Import all JSON files in the root directory
-        uri: ${{ secrets.MONGO_URI }}  # Your MongoDB connection string
-        database: 'bible'  # Your database name
-        collection: 'translations'  # Your collection name
-        keep-collection: 'false'  # Keep the existing collection and import new files
-        if-no-files-found: 'warn'  # Warn if no files are found, but do not fail the action
+        mongo-shell: 'true'
+        mongo-tools: 'false'
+
+    - name: Clear collection and upload files
+      run: |
+        echo "Connecting to MongoDB..."
+        mongosh ${{ secrets.MONGO_URI }} --quiet --eval "
+          use bible;
+          db.translations.drop();
+          print('Collection translations dropped.');
+        "
+        for file in *.json
+        do
+          echo "Uploading $file..."
+          mongosh ${{ secrets.MONGO_URI }} --quiet --eval "
+            use bible;
+            var data = $(cat $file);
+            db.translations.insertMany(data);
+            print('$file uploaded.');
+          "
+        done
+      shell: bash
