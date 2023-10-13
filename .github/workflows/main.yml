@@ -23,7 +23,7 @@ jobs:
     - name: Clear collection and upload files
       run: |
         echo "Connecting to MongoDB..."
-        mongosh ${{ secrets.MONGO_URI }} --eval "
+        mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
           use bible;
           db.translations.drop();
           print('Collection translations dropped.');
@@ -31,7 +31,7 @@ jobs:
         for file in *.json
         do
           echo "Uploading $file..."
-          mongosh ${{ secrets.MONGO_URI }} --eval "
+          mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
             use bible;
             var data = $(< $file);
             db.translations.insertMany(data);
