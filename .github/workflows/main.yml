@@ -32,7 +32,6 @@ jobs:
       run: |
         echo "Connecting to MongoDB..."
         mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
-          use bible;
           db.translations.drop();
           print('Collection translations dropped.');
         "
@@ -40,7 +39,6 @@ jobs:
         do
           echo "Uploading $file..."
           mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
-            use bible;
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('$file', 'utf8'));
             print('Number of records:', data.length);
