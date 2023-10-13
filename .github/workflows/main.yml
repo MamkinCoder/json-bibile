@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/mongosh
-        key: ${{ runner.os }}-mongosh-1
+        key: ${{ runner.os }}-mongosh-2
 
     - name: Setup MongoSH
       if: steps.cache-mongosh.outputs.cache-hit != 'true'
@@ -28,11 +28,17 @@ jobs:
         mongo-shell: 'true'
         mongo-tools: 'false'
 
-    - name: Copy mongosh to cache directory
+    - name: Find MongoSH path and copy to cache directory
+      if: steps.cache-mongosh.outputs.cache-hit != 'true'
+      run: |
+        which mongosh
+        mkdir -p ~/mongosh
+        cp $(which mongosh) ~/mongosh/
+        
+    - name: Use cached MongoSH
       if: steps.cache-mongosh.outputs.cache-hit == 'true'
       run: |
-        mkdir -p ~/mongosh
-        cp /usr/bin/mongosh ~/mongosh/
+        echo "~/mongosh" >> $GITHUB_PATH
 
     - name: Clear collection and upload files
       run: |
