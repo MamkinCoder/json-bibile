@@ -14,15 +14,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Cache MongoSH
+      id: cache-mongosh
+      uses: actions/cache@v2
+      with:
+        path: /usr/bin/mongosh
+        key: ${{ runner.os }}-mongosh-${{ hashFiles('**/lock-files') }}
+
     - name: Setup MongoSH
+      if: steps.cache-mongosh.outputs.cache-hit != 'true'
       uses: boly38/action-mongo-tools@v1.0.1
       with:
         mongo-shell: 'true'
         mongo-tools: 'false'
-        
-    - name: Find mongosh path
-      run: |
-        which mongosh
 
     - name: Clear collection and upload files
       run: |
@@ -38,8 +42,7 @@ jobs:
           mongosh "${{ secrets.MONGO_URI }}" --username "${{ secrets.MONGO_USERNAME }}" --password "${{ secrets.MONGO_PASSWORD }}" --eval "
             use bible;
             const fs = require('fs');
-            const EJSON = require('mongodb-extended-json');
-            const data = EJSON.parse(fs.readFileSync('$file', 'utf8'));
+            const data = JSON.parse(fs.readFileSync('$file', 'utf8'));
             db.translations.insertMany(data);
             print('$file uploaded.');
           "
